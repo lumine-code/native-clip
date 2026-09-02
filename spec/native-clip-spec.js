@@ -206,7 +206,7 @@ describe("native-clip", () => {
   // clipboard, whose selection reads do not answer in a hidden CI window —
   // the library's own CI covers the Linux formats through a real xclip
   // round-trip instead.
-  const roundTripSuite = process.platform === "linux" ? xdescribe : describe;
+  const roundTripSuite = process.platform === "linux" ? () => {} : describe;
 
   roundTripSuite("clipboard round-trip", () => {
     let dir;
