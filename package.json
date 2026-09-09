@@ -75,6 +75,6 @@
     "prettier": "^3.9.6"
   },
   "allowScripts": {
-    "github:lumine-code/clipboard-files#d0be2fb4f93b166e3cf3cc7865f56c6bb9ddb2af": true
+    "github:lumine-code/clipboard-files#963ba0f6b9268aa81a7280471a66215a0633c564": true
   }
 }
