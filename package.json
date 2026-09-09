@@ -64,7 +64,7 @@
     }
   },
   "dependencies": {
-    "@lumine-code/clipboard-files": "github:lumine-code/clipboard-files#d0be2fb4f93b166e3cf3cc7865f56c6bb9ddb2af"
+    "@lumine-code/clipboard-files": "github:lumine-code/clipboard-files#963ba0f6b9268aa81a7280471a66215a0633c564"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
