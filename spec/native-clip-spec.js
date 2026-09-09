@@ -126,6 +126,66 @@ describe("native-clip", () => {
       expect(cleared).toBe(true);
     });
 
+    it("retargets an open document after a cut without changing its unsaved state", async () => {
+      const document = { path: path.join(srcDir, "file.txt"), dirty: true, muted: false };
+      const registration = lumine.workspace.registerFileDocument({
+        owner: document,
+        getPath: () => document.path,
+        setPath: (nextPath) => {
+          document.path = nextPath;
+        },
+        beginFileOperation: () => {
+          document.muted = true;
+        },
+        endFileOperation: () => {
+          document.muted = false;
+        },
+      });
+      try {
+        fakeEffect = 2;
+        await mainModule.treePaste();
+        expect(document.path).toBe(path.join(dstDir, "file.txt"));
+        expect(document.dirty).toBe(true);
+        expect(document.muted).toBe(false);
+      } finally {
+        registration.dispose();
+      }
+    });
+
+    it("keeps the source document when a cross-device copy cannot remove its source", async () => {
+      const source = path.join(srcDir, "file.txt");
+      const target = path.join(dstDir, "file.txt");
+      const document = { path: source, muted: false };
+      const registration = lumine.workspace.registerFileDocument({
+        owner: document,
+        getPath: () => document.path,
+        setPath: (nextPath) => {
+          document.path = nextPath;
+        },
+        beginFileOperation: () => {
+          document.muted = true;
+        },
+        endFileOperation: () => {
+          document.muted = false;
+        },
+      });
+      spyOn(fs.promises, "rename").and.rejectWith(
+        Object.assign(new Error("different device"), { code: "EXDEV" }),
+      );
+      spyOn(fs.promises, "rm").and.rejectWith(new Error("source busy"));
+      try {
+        await expectAsync(mainModule.moveEntry(source, target, false)).toBeRejectedWithError(
+          "source busy",
+        );
+        expect(document.path).toBe(source);
+        expect(document.muted).toBe(false);
+        expect(fs.existsSync(source)).toBe(true);
+        expect(fs.existsSync(target)).toBe(true);
+      } finally {
+        registration.dispose();
+      }
+    });
+
     it("keeps the clipboard when every entry of a cut is skipped", async () => {
       fakeEffect = 2; // DROP_EFFECT_MOVE
       fs.writeFileSync(path.join(dstDir, "file.txt"), "old");
