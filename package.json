@@ -15,13 +15,6 @@
     "finder",
     "nautilus"
   ],
-  "activationCommands": {
-    ".tree-view": [
-      "native-clip:cut",
-      "native-clip:copy",
-      "native-clip:paste"
-    ]
-  },
   "version": "1.0.0",
   "license": "MIT",
   "engines": {
