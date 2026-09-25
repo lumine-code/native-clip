@@ -20,9 +20,6 @@
   "engines": {
     "lumine": "^1.0.0"
   },
-  "backgroundTips": [
-    "You can copy files selected in the tree view to the system clipboard with {{ 'native-clip:copy' | keystroke }}"
-  ],
   "main": "./lib/main",
   "files": [
     "docs",
@@ -37,6 +34,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
+  "providedServices": {
+    "native-clip": {
+      "versions": {
+        "1.0.0": "provideNativeClip"
+      }
+    },
+    "background-tips.provider": {
+      "versions": {
+        "1.0.0": "provideBackgroundTips"
+      }
+    }
+  },
   "consumedServices": {
     "tree-view.selection": {
       "versions": {
@@ -46,13 +55,6 @@
     "busy-signal": {
       "versions": {
         "^1.0.0": "consumeBusySignal"
-      }
-    }
-  },
-  "providedServices": {
-    "native-clip": {
-      "versions": {
-        "1.0.0": "provideNativeClip"
       }
     }
   },
