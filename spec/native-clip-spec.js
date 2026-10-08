@@ -205,6 +205,59 @@ describe("native-clip", () => {
       expect(fs.existsSync(path.join(dir, "folder - Copy", "inner.txt"))).toBe(true);
     });
 
+    it("copies into an alias of its own parent without replacing its source", async () => {
+      const alias = path.join(dir, "alias");
+      fs.symlinkSync(srcDir, alias, process.platform === "win32" ? "junction" : "dir");
+      mainModule.treeView = { selectedPaths: () => [alias] };
+      mainModule.promptConflict.and.resolveTo({ choice: "replace", all: false });
+
+      await mainModule.treePaste();
+
+      expect(mainModule.promptConflict).not.toHaveBeenCalled();
+      expect(fs.readFileSync(path.join(srcDir, "file.txt"), "utf8")).toBe("content");
+      expect(fs.readFileSync(path.join(srcDir, "file - Copy.txt"), "utf8")).toBe("content");
+    });
+
+    it("cuts into an alias of its own parent using a fresh name", async () => {
+      const alias = path.join(dir, "alias");
+      fs.symlinkSync(srcDir, alias, process.platform === "win32" ? "junction" : "dir");
+      mainModule.treeView = { selectedPaths: () => [alias] };
+      mainModule.promptConflict.and.resolveTo({ choice: "replace", all: false });
+      fakeEffect = 2;
+
+      await mainModule.treePaste();
+
+      expect(mainModule.promptConflict).not.toHaveBeenCalled();
+      expect(fs.readFileSync(path.join(srcDir, "file - Copy.txt"), "utf8")).toBe("content");
+      expect(cleared).toBe(true);
+    });
+
+    it("refuses a direct move onto the same entry through a directory alias", async () => {
+      const alias = path.join(dir, "alias");
+      fs.symlinkSync(srcDir, alias, process.platform === "win32" ? "junction" : "dir");
+      const source = path.join(srcDir, "file.txt");
+
+      await expectAsync(
+        mainModule.moveEntry(source, path.join(alias, "file.txt"), true),
+      ).toBeRejectedWithError("Cannot move an entry onto itself");
+
+      expect(fs.readFileSync(source, "utf8")).toBe("content");
+    });
+
+    if (process.platform === "win32") {
+      it("cuts into its own parent with different casing without deleting the source", async () => {
+        mainModule.treeView = { selectedPaths: () => [srcDir.toUpperCase()] };
+        mainModule.promptConflict.and.resolveTo({ choice: "replace", all: false });
+        fakeEffect = 2;
+
+        await mainModule.treePaste();
+
+        expect(mainModule.promptConflict).not.toHaveBeenCalled();
+        expect(fs.readFileSync(path.join(srcDir, "file - Copy.txt"), "utf8")).toBe("content");
+        expect(cleared).toBe(true);
+      });
+    }
+
     it("copies directories recursively", async () => {
       const tree = path.join(srcDir, "tree");
       fs.mkdirSync(path.join(tree, "nested"), { recursive: true });
