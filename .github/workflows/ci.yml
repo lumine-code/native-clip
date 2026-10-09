@@ -40,14 +40,19 @@ jobs:
         run: npm run lint
       - name: Check formatting
         run: npm run format:check
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+      - name: Check package contents
+        run: npm pack --dry-run
 
   integration:
-    # Run the Jasmine spec suite inside a real Lumine build. The engine specs
-    # run everywhere on spies; the round-trip spec talks to the real clipboard
-    # through Electron's, which xvfb provides a display for.
-    name: Lumine integration specs
-    runs-on: ubuntu-latest
+    name: Lumine integration specs on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-26-intel, windows-latest]
     env:
       LUMINE_JASMINE_REPORTER: list
     steps:
@@ -64,6 +69,7 @@ jobs:
           cache: npm
           cache-dependency-path: lumine/package-lock.json
       - name: Install Linux build and headless-display dependencies
+        if: runner.os == 'Linux'
         run: |
           # A third-party repository on the runner image answering 403 must not
           # fail the job: the lists this actually needs still fetched, and the
@@ -79,6 +85,7 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Install editor dependencies
         working-directory: lumine
+        shell: bash
         run: |
           install() { npm ci --ignore-scripts; }
           install || install || install
@@ -88,7 +95,17 @@ jobs:
       - name: Rebuild native modules for Electron
         working-directory: lumine
         run: npm run build
+      - name: Build the installed native clipboard dependency
+        if: runner.os != 'Linux'
+        working-directory: lumine
+        run: node ./node_modules/node-gyp/bin/node-gyp.js rebuild --directory ../native-clip/node_modules/@lumine-code/clipboard-files
       - name: Run the Jasmine spec suite
         working-directory: lumine
         timeout-minutes: 20
-        run: xvfb-run --auto-servernum npm start -- --test ../native-clip/spec
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run --auto-servernum npm start -- --test ../native-clip/spec
+          else
+            npm start -- --test ../native-clip/spec
+          fi

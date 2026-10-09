@@ -169,10 +169,16 @@ describe("native-clip", () => {
           document.muted = false;
         },
       });
-      spyOn(fs.promises, "rename").and.rejectWith(
-        Object.assign(new Error("different device"), { code: "EXDEV" }),
+      const rename = fs.promises.rename.bind(fs.promises);
+      const remove = fs.promises.rm.bind(fs.promises);
+      spyOn(fs.promises, "rename").and.callFake((from, to) =>
+        from === source
+          ? Promise.reject(Object.assign(new Error("different device"), { code: "EXDEV" }))
+          : rename(from, to),
       );
-      spyOn(fs.promises, "rm").and.rejectWith(new Error("source busy"));
+      spyOn(fs.promises, "rm").and.callFake((target, options) =>
+        target === source ? Promise.reject(new Error("source busy")) : remove(target, options),
+      );
       try {
         await expectAsync(mainModule.moveEntry(source, target, false)).toBeRejectedWithError(
           "source busy",
