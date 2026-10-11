@@ -58,6 +58,7 @@ jobs:
         shell: bash
     env:
       LUMINE_JASMINE_REPORTER: list
+      LUMINE_TEST_SYSTEM_CLIPBOARD: "true"
       LUMINE_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: "true"
       LUMINE_HOME: ${{ github.workspace }}/native-clip-spec-home
       XDG_CONFIG_HOME: ${{ github.workspace }}/native-clip-spec-home

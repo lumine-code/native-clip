@@ -34,4 +34,6 @@ Cut or copied files land on the platform clipboard in its native file format, so
 
 ## Contributing
 
+Local tests leave the system clipboard untouched. The native clipboard round-trip runs only when `LUMINE_TEST_SYSTEM_CLIPBOARD=true`; CI enables it on its disposable runners.
+
 Got ideas to make this package better, found a bug, or want to help add new features? Just drop your thoughts on GitHub. Any feedback is welcome!
