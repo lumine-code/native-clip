@@ -80,7 +80,7 @@ module.exports = {
 
 **Guard on having received the service**, not on `process.platform` — the service is provided on every platform, but a consumer package can still be activated before this one.
 
-**Prefer the high-level operations.** `pasteInto` asks the user about collisions (Replace / Keep Both / Skip, with All variants when several collide), reports progress through the `busy-signal` service, notifies successes and failures, and clears the clipboard after a completed move. A package that pastes by hand re-implements all of that.
+**Prefer the high-level operations.** `pasteInto` asks the user about collisions (Replace / Keep Both / Skip, with All variants when several collide), reports progress through the `busy-signal` service, notifies successes and failures, and clears the clipboard after a completed move. If only some cut entries move, it keeps the skipped or failed entries on the clipboard for a retry. A package that pastes by hand re-implements all of that.
 
 **Read `readDropEffect()` before acting on raw paths.** A cut and a copy put the same paths on the clipboard; only the drop effect distinguishes them, and ignoring it turns every cut into a copy.
 
