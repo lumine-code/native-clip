@@ -6,7 +6,9 @@
       },
       {
         "label": "Cut (System)",
-        "command": "native-clip:cut"
+        "command": "native-clip:cut",
+        "afterGroupContaining": ["tree-view:remove", "tree-view:add-file"],
+        "after": ["tree-view:paste"]
       },
       {
         "label": "Copy (System)",
