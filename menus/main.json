@@ -1,4 +1,50 @@
 {
+  "menu": [
+    {
+      "label": "Edit",
+      "submenu": [
+        {
+          "label": "System File Clipboard",
+          "submenu": [
+            {
+              "label": "Cut Tree Selection",
+              "command": "native-clip:cut"
+            },
+            {
+              "label": "Copy Tree Selection",
+              "command": "native-clip:copy"
+            },
+            {
+              "label": "Paste into Tree Selection",
+              "command": "native-clip:paste"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "Native Clip",
+          "submenu": [
+            {
+              "label": "Cut Tree Selection",
+              "command": "native-clip:cut"
+            },
+            {
+              "label": "Copy Tree Selection",
+              "command": "native-clip:copy"
+            },
+            {
+              "label": "Paste into Tree Selection",
+              "command": "native-clip:paste"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "context-menu": {
     ".tree-view .entry": [
       {

@@ -16,7 +16,7 @@ To install `native-clip` search for it in the Install pane of the Lumine setting
 
 ## Commands
 
-Commands available in `.tree-view`:
+Commands available in `lumine-workspace`:
 
 - `native-clip:cut`: cut selected files/folders to the system clipboard,
 - `native-clip:copy`: copy selected files/folders to the system clipboard,
