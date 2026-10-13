@@ -18,7 +18,9 @@
               "label": "Paste into Tree Selection",
               "command": "native-clip:paste"
             }
-          ]
+          ],
+          "group": "clipboard",
+          "order": 70
         }
       ]
     },
