@@ -53,18 +53,24 @@
         "type": "separator"
       },
       {
-        "label": "Cut (System)",
+        "label": "Cut to System Clipboard",
         "command": "native-clip:cut",
         "afterGroupContaining": ["tree-view:remove", "tree-view:add-file"],
-        "after": ["tree-view:paste"]
+        "after": ["tree-view:paste"],
+        "group": "clipboard",
+        "order": 40
       },
       {
-        "label": "Copy (System)",
-        "command": "native-clip:copy"
+        "label": "Copy to System Clipboard",
+        "command": "native-clip:copy",
+        "group": "clipboard",
+        "order": 50
       },
       {
-        "label": "Paste (System)",
-        "command": "native-clip:paste"
+        "label": "Paste from System Clipboard",
+        "command": "native-clip:paste",
+        "group": "clipboard",
+        "order": 60
       },
       {
         "type": "separator"
