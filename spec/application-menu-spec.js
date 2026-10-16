@@ -16,26 +16,28 @@ describe("Native Clip application menu", () => {
     await lumine.packages.deactivatePackage("native-clip");
   });
   it("copies selected tree entries from another focused surface without duplicate dispatch", async () => {
-    lease = main.consumeTreeViewSelection({ selectedPaths: () => [__filename] });
+    lease = main.consumeTreeViewSelection({
+      selectedPaths: () => [__filename],
+      getSelectionSnapshot: () => ({ count: 1, paths: [__filename] }),
+    });
     spyOn(main, "copyPaths").and.resolveTo();
     await lumine.commands.dispatch(button, "native-clip:copy");
     expect(main.copyPaths).toHaveBeenCalledOnceWith([__filename]);
   });
-  it("explains an empty tree selection and leaves the clipboard untouched", async () => {
-    lease = main.consumeTreeViewSelection({ selectedPaths: () => [] });
+  it("declines an empty tree selection silently and leaves the clipboard untouched", async () => {
+    lease = main.consumeTreeViewSelection({
+      selectedPaths: () => [],
+      getSelectionSnapshot: () => ({ count: 0, paths: [] }),
+    });
     spyOn(main, "copyPaths").and.resolveTo();
     spyOn(lumine.notifications, "addWarning");
-    await lumine.commands.dispatch(button, "native-clip:copy");
-    expect(lumine.notifications.addWarning).toHaveBeenCalledWith(
-      "Select a tree-view file or directory first.",
-    );
+    expect(lumine.commands.dispatch(button, "native-clip:copy")).toBeNull();
+    expect(lumine.notifications.addWarning).not.toHaveBeenCalled();
     expect(main.copyPaths).not.toHaveBeenCalled();
   });
-  it("explains why a file clipboard command needs Tree View", async () => {
+  it("declines a file clipboard command without Tree View silently", async () => {
     spyOn(lumine.notifications, "addWarning");
-    await lumine.commands.dispatch(button, "native-clip:paste");
-    expect(lumine.notifications.addWarning).toHaveBeenCalledWith(
-      "Tree View is unavailable for file clipboard commands.",
-    );
+    expect(lumine.commands.dispatch(button, "native-clip:paste")).toBeNull();
+    expect(lumine.notifications.addWarning).not.toHaveBeenCalled();
   });
 });
