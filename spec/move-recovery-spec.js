@@ -1,6 +1,97 @@
 const fs = require("node:fs/promises"),
+  syncFs = require("node:fs"),
   os = require("node:os"),
   path = require("node:path");
+
+function reportMoveFailure(directory, error) {
+  const emit = (label, value) => {
+    try {
+      console.error(`${label} ${JSON.stringify(value)}`);
+    } catch {
+      // Diagnostics must never replace the original move error.
+    }
+  };
+  const relative = (value) => {
+    if (typeof value !== "string") return null;
+    const result = path.relative(directory, value);
+    if (result === ".." || result.startsWith(`..${path.sep}`) || path.isAbsolute(result))
+      return null;
+    return result.split(path.sep).join("/") || ".";
+  };
+  try {
+    const recovery = syncFs
+      .readdirSync(directory)
+      .filter((name) => name.startsWith(".native-clip-recovery-"));
+    const entries = [".", "source", "source/owned.txt", "destination", "destination/owned.txt"];
+    for (const name of recovery)
+      entries.push(name, `${name}/destination`, `${name}/destination/owned.txt`);
+    emit("NATIVE_CLIP_MOVE_FAILURE", {
+      phase: "immediately-after-move-rejection",
+      error: {
+        code: error.code,
+        syscall: error.syscall,
+        path: relative(error.path),
+        destination: relative(error.dest),
+      },
+      runtime: {
+        platform: process.platform,
+        electron: process.versions.electron,
+        node: process.versions.node,
+        activeResources: process.getActiveResourcesInfo?.(),
+      },
+      fixture: entries.map((entry) => {
+        try {
+          const stat = syncFs.lstatSync(path.join(directory, entry));
+          return {
+            path: entry,
+            kind: stat.isDirectory() ? "directory" : stat.isFile() ? "file" : "other",
+            size: stat.size,
+            mode: stat.mode,
+          };
+        } catch (failure) {
+          return { path: entry, errorCode: failure.code || "unavailable" };
+        }
+      }),
+    });
+  } catch {
+    emit("NATIVE_CLIP_MOVE_FAILURE", {
+      phase: "immediately-after-move-rejection",
+      fixtureUnavailable: true,
+    });
+  }
+  // IPC is best effort and never delays rethrowing the original error. This
+  // later logical-subscription sample may arrive after fixture teardown.
+  try {
+    void Promise.resolve(lumine.fileWatchClient.diagnostics())
+      .then(
+        (watch) =>
+          emit("NATIVE_CLIP_MOVE_FAILURE_WATCH", {
+            phase: "asynchronous-logical-subscription-supplement",
+            workerRunning: watch.workerRunning,
+            pendingRequests: watch.pendingRequests,
+            subscriptions: watch.subscriptions.flatMap((entry) => {
+              const name = relative(entry.path);
+              return name === null
+                ? []
+                : [
+                    {
+                      path: name,
+                      kind: entry.kind,
+                      recursive: entry.recursive,
+                      active: entry.active,
+                      closing: entry.closing,
+                    },
+                  ];
+            }),
+          }),
+        () => emit("NATIVE_CLIP_MOVE_FAILURE_WATCH", { unavailable: true }),
+      )
+      .catch(() => {});
+  } catch {
+    emit("NATIVE_CLIP_MOVE_FAILURE_WATCH", { unavailable: true });
+  }
+}
+
 describe("Native Clip overwrite failure recovery", () => {
   let main, directory, editor;
   beforeEach(async () => {
@@ -90,7 +181,12 @@ describe("Native Clip overwrite failure recovery", () => {
     const changes = [];
     const lease = editor.onDidChangePath((value) => changes.push(value));
     try {
-      await main.moveEntry(source, destination, true);
+      try {
+        await main.moveEntry(source, destination, true);
+      } catch (error) {
+        reportMoveFailure(directory, error);
+        throw error;
+      }
       expect(await fs.readFile(file, "utf8")).toBe("Source bytes");
       expect(editor.getPath()).toBe(file);
       expect(editor.getText()).toBe(text);
