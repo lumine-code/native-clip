@@ -59,7 +59,7 @@
     }
   },
   "dependencies": {
-    "@lumine-code/clipboard-files": "github:lumine-code/clipboard-files#7c3fb3de4e50340740c4058a28c6d22a60eceda0"
+    "@lumine-code/clipboard-files": "github:lumine-code/clipboard-files#ab6e4084e2707ba9e4aae8ea5b07c8274d0e8828"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -70,7 +70,7 @@
     "prettier": "^3.10.1"
   },
   "allowScripts": {
-    "github:lumine-code/clipboard-files#7c3fb3de4e50340740c4058a28c6d22a60eceda0": true
+    "github:lumine-code/clipboard-files#ab6e4084e2707ba9e4aae8ea5b07c8274d0e8828": true
   },
   "overrides": {
     "eslint@^10.14.0": {
